@@ -34,11 +34,24 @@ private:
         }
 
         return make_pair(min_index, min_wgh);
+
     }
 
     void _print_q(vector<pair<int, int>> q) { ////////////////////////////////////////////////////////delete
         for (pair<int, int> adj_node : q) {
             cout << adj_node.first << " " << adj_node.second << endl;
+        }
+    }
+
+    void print_Dijkstra(vector<int> parent, vector<int> dist) {
+
+        ofstream f("Dijkstra.txt");
+
+        for (int i = 0; i < n; i++)
+        {
+            if (parent[i] >= 0) {
+                f << parent[i] << " " << i << " " << dist[i] << endl;
+            }
         }
     }
 
@@ -84,8 +97,11 @@ public:
             q.pop();
 
             vector<pair<int, int>> adj_list = edges[v];
+
             for (auto adj_node: adj_list) {
+
                 if (! visited[adj_node.first]) {
+
                     q.push(adj_node.first);
                     visited[adj_node.first] = 1;
                 }
@@ -101,17 +117,13 @@ public:
         DFS_recursion(u, visited, f);
     }
 
-
-    
-
     void Prim(int u) {
 
-        vector<int> key(n, INT_MAX), visited(n, 0);
-        vector<int> parent(n, -1);
+        vector<int> weight(n, INT_MAX), visited(n, 0), parent(n, -1);
 
         ofstream f("PRIM.txt");
 
-        key[u] = 0;
+        weight[u] = 0;
         visited[u] = 1;
 
         for (int i = 0; i < n - 1;i++){
@@ -119,17 +131,54 @@ public:
             for (pair<int, int> adj_node : edges[u]) {
                 int v_adj = adj_node.first;
 
-                if (!visited[v_adj] && adj_node.second < key[v_adj]) {
+                if (!visited[v_adj] && adj_node.second < weight[v_adj]) {
+
                     parent[v_adj] = u;
-                    key[v_adj] = adj_node.second;
+                    weight[v_adj] = adj_node.second;
                 }
             }
             
-            pair<int, int> min_v = min_wgh_edge(key, visited);
+            pair<int, int> min_v = min_wgh_edge(weight, visited);
             u = min_v.first;
             visited[u] = 1;
             f << parent[u] << " " << u << " " << min_v.second << endl;
         }
+    }
+
+    void Dijkstra(int start, int end) {
+
+        vector<int> visited(n, 0), dist(n, INT_MAX), parent(n, -1);
+       
+        dist[start] = 0;
+
+        int curr = start;
+
+        for (int count = 0; count < n - 1; count++) {
+
+            pair<int, int> curr_node = min_wgh_edge(dist, visited);
+            curr = curr_node.first;
+
+            visited[curr] = 1;
+
+            for (pair<int, int> adj_node : edges[curr]) {
+
+                int w = adj_node.first;
+
+                if (!visited[w]) {
+
+                    int dist_w = dist[curr] + adj_node.second;
+
+                    if (dist_w < dist[w]) {
+                        dist[w] = dist_w;
+                        parent[w] = curr;
+                    }
+                }
+            }
+
+        }
+
+        print_Dijkstra(parent, dist);
+
     }
 
 };
@@ -169,12 +218,13 @@ int main()
 
     //g.DFS(0);
 
-    Graph g_f = read_graph("Adjacency Matrix.txt");
+    Graph test_graph = read_graph("Adjacency Matrix.txt");
 
-    g_f.print(); cout << endl;
-    g_f.BFS(2);
-    g_f.DFS(2);
-    g_f.Prim(0);
+    test_graph.print(); cout << endl;
+    test_graph.BFS(2);
+    test_graph.DFS(2);
+    test_graph.Prim(0);
+    test_graph.Dijkstra(0, 7);
 
 
     return 0;
