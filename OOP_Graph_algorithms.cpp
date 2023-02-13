@@ -56,9 +56,7 @@ private:
         }
     }
 
-    void print_shortest_path(int curr, vector<int> parent, ofstream& f) {
-
-        //ofstream f("AStar.txt");
+    void print_shortest_path(int curr, vector<int> parent, vector<int> dist, ofstream& f) {
 
         stack<int> path;
         path.push(curr);
@@ -67,10 +65,15 @@ private:
             curr = parent[curr];
             path.push(curr);
         }
+        path.pop();
 
         while (!path.empty()) {
-            f << path.top() << " ";
+            curr = path.top();
+
+            f << parent[curr] << " " << curr << " " << dist[curr] << endl;
+
             path.pop();
+            
         }
     }
 
@@ -179,7 +182,7 @@ public:
 
             if (goal >= 0 && curr == goal) {
                 ofstream f("Dijkstra.txt");
-                return print_shortest_path(curr, parent, f);
+                return print_shortest_path(curr, parent, dist, f);
             }
 
             visited[curr] = 1;
@@ -209,20 +212,20 @@ public:
 
     void AStar(int start, int goal) {
 
-        vector<int> visited(n, 0), g(n, INT_MAX), f(n, INT_MAX), parent(n, -1); // f(n) = g(n) + h(n)
+        vector<int> visited(n, 0), g_score(n, INT_MAX), f_score(n, INT_MAX), parent(n, -1); // f(n) = g(n) + h(n)
 
-        g[start] = 0;
-        f[start] = h(start);
+        g_score[start] = 0;
+        f_score[start] = h(start);
         int curr = start;
 
         for (int count = 0; count < n - 1; count++) {
 
-            pair<int, int> curr_node = min_wgh_edge(f, visited);
+            pair<int, int> curr_node = min_wgh_edge(f_score, visited);
             curr = curr_node.first;
 
             if (curr == goal) {
                 ofstream f("AStar.txt");
-                return print_shortest_path(curr, parent, f);
+                return print_shortest_path(curr, parent, f_score, f);
             }
             visited[curr] = 1;
 
@@ -231,14 +234,13 @@ public:
                 int v = adj_node.first;
                 int d = adj_node.second;
 
-                int dist_v = g[curr] + d;
-                if (dist_v < g[v]) {
+                int dist_v = g_score[curr] + d;
+                if (dist_v < g_score[v]) {
                     parent[v] = curr;
-                    g[v] = dist_v;
-                    f[v] = dist_v + h(v);
+                    g_score[v] = dist_v;
+                    f_score[v] = dist_v + h(v);
                 }
             }
-
 
         }
 
@@ -287,7 +289,8 @@ int main()
     test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
-    test_graph.Dijkstra(0, 7);
+    test_graph.Dijkstra(0);
+    test_graph.AStar(0, 6);
 
 
     return 0;
