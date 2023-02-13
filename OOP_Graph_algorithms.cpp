@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <stack>
 #include <fstream>
 
 using namespace std;
@@ -52,6 +53,24 @@ private:
             if (parent[i] >= 0) {
                 f << parent[i] << " " << i << " " << dist[i] << endl;
             }
+        }
+    }
+
+    void print_shortest_path(int curr, vector<int> parent, ofstream& f) {
+
+        //ofstream f("AStar.txt");
+
+        stack<int> path;
+        path.push(curr);
+
+        while (parent[curr] >= 0) {
+            curr = parent[curr];
+            path.push(curr);
+        }
+
+        while (!path.empty()) {
+            f << path.top() << " ";
+            path.pop();
         }
     }
 
@@ -145,7 +164,7 @@ public:
         }
     }
 
-    void Dijkstra(int start, int end) {
+    void Dijkstra(int start, int goal = -1) {
 
         vector<int> visited(n, 0), dist(n, INT_MAX), parent(n, -1);
        
@@ -158,26 +177,70 @@ public:
             pair<int, int> curr_node = min_wgh_edge(dist, visited);
             curr = curr_node.first;
 
+            if (goal >= 0 && curr == goal) {
+                ofstream f("Dijkstra.txt");
+                return print_shortest_path(curr, parent, f);
+            }
+
             visited[curr] = 1;
 
             for (pair<int, int> adj_node : edges[curr]) {
 
-                int w = adj_node.first;
+                int v = adj_node.first;
 
-                if (!visited[w]) {
+                if (!visited[v]) {
 
                     int dist_w = dist[curr] + adj_node.second;
 
-                    if (dist_w < dist[w]) {
-                        dist[w] = dist_w;
-                        parent[w] = curr;
+                    if (dist_w < dist[v]) {
+                        dist[v] = dist_w;
+                        parent[v] = curr;
                     }
                 }
             }
 
         }
-
         print_Dijkstra(parent, dist);
+    }
+
+    int h(int x) {
+        return 1;
+    }
+
+    void AStar(int start, int goal) {
+
+        vector<int> visited(n, 0), g(n, INT_MAX), f(n, INT_MAX), parent(n, -1); // f(n) = g(n) + h(n)
+
+        g[start] = 0;
+        f[start] = h(start);
+        int curr = start;
+
+        for (int count = 0; count < n - 1; count++) {
+
+            pair<int, int> curr_node = min_wgh_edge(f, visited);
+            curr = curr_node.first;
+
+            if (curr == goal) {
+                ofstream f("AStar.txt");
+                return print_shortest_path(curr, parent, f);
+            }
+            visited[curr] = 1;
+
+            for (pair<int, int> adj_node : edges[curr]) {
+
+                int v = adj_node.first;
+                int d = adj_node.second;
+
+                int dist_v = g[curr] + d;
+                if (dist_v < g[v]) {
+                    parent[v] = curr;
+                    g[v] = dist_v;
+                    f[v] = dist_v + h(v);
+                }
+            }
+
+
+        }
 
     }
 
