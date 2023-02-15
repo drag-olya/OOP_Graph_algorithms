@@ -14,12 +14,13 @@ private:
     void DFS_recursion(int u, vector<int>& visited, vector<int>& parent) {
 
         visited[u] = 1;
-        //f << u << " ";
 
         vector<pair<int, int>> adj_list = edges[u];
         for (auto adj_node : adj_list) {
             if (!visited[adj_node.first]) {
+
                 parent[adj_node.first] = u;
+
                 DFS_recursion(adj_node.first, visited, parent);
             }
         }
@@ -41,13 +42,10 @@ private:
     }
 
     void print_path(vector<int> parent, ofstream& f) {
-        
-        
 
         for (int u = 0; u < n; u++) {
             f << parent[u] << " " << u << endl;
         }
-
     }
 
     void print_Dijkstra(vector<int> parent, vector<int> dist) {
@@ -105,7 +103,7 @@ private:
 
                 int v = adj_node.first;
                 int g_wgh = adj_node.second;
-                int max_flow_wgh = g_wgh - resid_g.get_wgh(u, v);
+                int max_flow_wgh = g_wgh - resid_g.getWgh(u, v);
                 if (max_flow_wgh > 0) {
                     f << u << " " << v << " " << max_flow_wgh << endl;
                 }
@@ -130,7 +128,7 @@ public:
         edges[start].push_back(make_pair(end, weight));
     }
 
-    int get_wgh(int u, int v) {
+    int getWgh(int u, int v) {
 
         for (pair<int, int> adj_node : edges[u]) {
 
@@ -156,11 +154,16 @@ public:
 
         vector<int> visited(n, 0), parent(n, -1);
         queue<int> q;
+        bool FordFulkers_method = false;
+
+        if (!parent_for_FF.empty()) {
+            FordFulkers_method = true;
+        }
 
         q.push(start);
         visited[start] = 1;
 
-        if (!parent_for_FF.empty()) { parent_for_FF[start] = -1; }
+        if (FordFulkers_method) { parent_for_FF[start] = -1; }
         else { parent[start] = -1; }
 
         while (! q.empty()) {
@@ -175,7 +178,7 @@ public:
 
                     q.push(adj_node.first);
 
-                    if (!parent_for_FF.empty()) { parent_for_FF[adj_node.first] = v; }
+                    if (FordFulkers_method) { parent_for_FF[adj_node.first] = v; }
                     else { parent[adj_node.first] = v; }
                     
                     visited[adj_node.first] = 1;
@@ -183,9 +186,10 @@ public:
             }
         }
 
-        ofstream f("BFS.txt");
-
-        print_path(parent, f);
+        if (!FordFulkers_method) { 
+            ofstream f("BFS.txt"); 
+            print_path(parent, f); 
+        }
 
         if (goal >= 0) {
             return visited[goal];
@@ -326,7 +330,7 @@ public:
             for (int v = goal; v != start; v = parent[v]) {
                 
                 u = parent[v];
-                path_flow = min(path_flow, resid_g.get_wgh(u, v));
+                path_flow = min(path_flow, resid_g.getWgh(u, v));
             }
             for (int v = goal; v != start; v = parent[v]) {
 
@@ -392,7 +396,7 @@ int main()
 
     Graph test_graph_FF = read_graph("Test graph FF.txt");
     //test_graph_FF.print(); cout << endl;
-    //test_graph_FF.FordFulkerson(0, 5);
+    test_graph_FF.FordFulkerson(0, 5);
 
     //cout << test_graph.FordFulkerson(0, 5) << endl;
 
