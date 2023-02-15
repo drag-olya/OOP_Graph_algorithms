@@ -5,6 +5,7 @@
 #include <fstream>
 
 using namespace std;
+static vector<int> DEFAULT_VECTOR;
 
 class Graph {
 
@@ -77,6 +78,38 @@ private:
         }
     }
 
+    void upd_wgh(int u, int v, int new_wgh) {
+
+        for (pair<int, int>& adj_node : edges[u]) {
+
+            auto* p_wgh = &adj_node.second;
+
+            if (adj_node.first == v) {
+                *p_wgh += new_wgh;
+            }
+        }
+    }
+
+    void print_FordFulkerson(Graph resid_g) {
+
+        ofstream f("Ford Fulkerson.txt");
+
+        for (int u = 0; u < n; u++)
+        {
+            for (pair<int, int> adj_node : edges[u]) {
+
+                int v = adj_node.first;
+                int g_wgh = adj_node.second;
+                int max_flow_wgh = g_wgh - resid_g.get_wgh(u, v);
+                if (max_flow_wgh > 0) {
+                    f << u << " " << v << " " << max_flow_wgh << endl;
+                }
+
+            }
+        }
+
+    }
+
 public:
 
     vector<vector<pair<int, int>>> edges;
@@ -92,18 +125,29 @@ public:
         edges[start].push_back(make_pair(end, weight));
     }
 
+    int get_wgh(int u, int v) {
+
+        for (pair<int, int> adj_node : edges[u]) {
+
+            if (adj_node.first == v) {
+                return adj_node.second;
+            }
+        }
+        return 0;
+    }
+
     void print() {
 
         for (int i = 0; i < n; i++)
         {
-            for (auto p : edges[i]) {
+            for (pair<int, int> p : edges[i]) {
                 cout << "edge (" << i << ", " << p.first << "), weight: " << p.second << endl;
             }
         }
         
     }
 
-    int BFS(int start, vector<int>& parent, int goal = -1) {
+    int BFS(int start, int goal = -1, vector<int>& parent = DEFAULT_VECTOR) {
 
         vector<int> visited(n, 0);
         queue<int> q;
@@ -258,90 +302,36 @@ public:
 
     }
 
-    int get_wgh(int u, int v) {
-
-        for (pair<int, int> adj_node : edges[u]) {
-
-            if (adj_node.first == v) {
-                return adj_node.second;
-            }
-        }
-        return 0;
-    }
-
-    void upd_wgh(Graph& g, int u, int v, int new_wgh) {
-
-        for (pair<int, int>& adj_node : g.edges[u]) {
-
-            if (adj_node.first = v) {
-                adj_node.second += new_wgh;
-            }
-        }
-
-    }
-
-    int FordFulkerson(int start, int goal) {
+    void FordFulkerson(int start, int goal) {
 
         Graph resid_g(n);
         resid_g.edges = edges;
 
         vector<int> parent(n, -1);
-        int max_flow = 0;
-        int u;
-
-        //parent[start] = -1;
-
-        resid_g.print();
+        int u, max_flow = 0;
         
-
-        while (resid_g.BFS(start, parent, goal)) {
-
-            for (int i = 0; i < n; i++) { cout << parent[i] << " "; } cout << endl;
-            
-
+        while (resid_g.BFS(start, goal, parent)) {
+       
             int path_flow = INT_MAX;
 
             for (int v = goal; v != start; v = parent[v]) {
                 
                 u = parent[v];
-                cout << "wgh " << u << " " << v << " " << resid_g.get_wgh(u, v) << endl;
                 path_flow = min(path_flow, resid_g.get_wgh(u, v));
-                cout << "path_flow " << path_flow << endl;
             }
-            cout << "AAAAAAAAAAAA" << endl;
             for (int v = goal; v != start; v = parent[v]) {
+
                 u = parent[v];
-                //upd_wgh(resid_g, u, v, -path_flow);
-                //upd_wgh(resid_g, v, u, path_flow);
-
-                for (pair<int, int>& adj_node : resid_g.edges[u]) {
-
-                    auto *f = &adj_node.second;
-
-                    if (adj_node.first == v) {
-                        *f -= path_flow;
-                    }
-                }
-
-                for (pair<int, int>& adj_node : resid_g.edges[v]) {
-
-                    auto* f = &adj_node.second;
-
-                    if (adj_node.first == u) {
-                        *f += path_flow;
-                    }
-                }
-
-
+                resid_g.upd_wgh(u, v, -path_flow);
+                resid_g.upd_wgh(v, u, path_flow);
             }
 
             max_flow += path_flow;
-            cout << max_flow << " ";
         }
 
-        resid_g.print(); cout << endl;
+        print_FordFulkerson(resid_g);
 
-        return max_flow;
+        cout << "Max flow: " << max_flow << endl;
     }
 
 };
@@ -384,7 +374,7 @@ int main()
     Graph test_graph = read_graph("Test graph.txt");
 
     //test_graph.print(); cout << endl;
-    //test_graph.BFS(2);
+    test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
     test_graph.Dijkstra(0);
@@ -392,7 +382,7 @@ int main()
 
     Graph test_graph_FF = read_graph("Test graph FF.txt");
     test_graph_FF.print(); cout << endl;
-    cout << test_graph_FF.FordFulkerson(0, 5) << endl;
+    test_graph_FF.FordFulkerson(0, 5);
 
     //cout << test_graph.FordFulkerson(0, 5) << endl;
 
