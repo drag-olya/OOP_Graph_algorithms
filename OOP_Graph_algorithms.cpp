@@ -11,15 +11,16 @@ class Graph {
 
 private:
 
-    void DFS_recursion(int u, vector<int>& visited, ofstream& f) {
+    void DFS_recursion(int u, vector<int>& visited, vector<int>& parent) {
 
         visited[u] = 1;
-        f << u << " ";
+        //f << u << " ";
 
         vector<pair<int, int>> adj_list = edges[u];
         for (auto adj_node : adj_list) {
             if (!visited[adj_node.first]) {
-                DFS_recursion(adj_node.first, visited, f);
+                parent[adj_node.first] = u;
+                DFS_recursion(adj_node.first, visited, parent);
             }
         }
 
@@ -39,10 +40,14 @@ private:
 
     }
 
-    void _print_q(vector<pair<int, int>> q) { ////////////////////////////////////////////////////////delete
-        for (pair<int, int> adj_node : q) {
-            cout << adj_node.first << " " << adj_node.second << endl;
+    void print_path(vector<int> parent, ofstream& f) {
+        
+        
+
+        for (int u = 0; u < n; u++) {
+            f << parent[u] << " " << u << endl;
         }
+
     }
 
     void print_Dijkstra(vector<int> parent, vector<int> dist) {
@@ -147,24 +152,19 @@ public:
         
     }
 
-    int BFS(int start, int goal = -1, vector<int>& parent = DEFAULT_VECTOR) {
+    int BFS(int start, int goal = -1, vector<int>& parent_for_FF = DEFAULT_VECTOR) {
 
-        vector<int> visited(n, 0);
+        vector<int> visited(n, 0), parent(n, -1);
         queue<int> q;
 
         q.push(start);
         visited[start] = 1;
 
-        if (!parent.empty()) {
-            parent[start] = -1;
-        }
-        //
-
-        ofstream f("BFS.txt");
+        if (!parent_for_FF.empty()) { parent_for_FF[start] = -1; }
+        else { parent[start] = -1; }
 
         while (! q.empty()) {
             int v = q.front();
-            f << v << " ";
             q.pop();
 
             vector<pair<int, int>> adj_list = edges[v];
@@ -175,24 +175,33 @@ public:
 
                     q.push(adj_node.first);
 
-                    if (!parent.empty()) { parent[adj_node.first] = v; }
+                    if (!parent_for_FF.empty()) { parent_for_FF[adj_node.first] = v; }
+                    else { parent[adj_node.first] = v; }
                     
                     visited[adj_node.first] = 1;
                 }
             }
         }
+
+        ofstream f("BFS.txt");
+
+        print_path(parent, f);
+
         if (goal >= 0) {
             return visited[goal];
         }
         return 0;
     }
 
-    void DFS(int u) {
+    void DFS(int start) {
 
-        vector<int> visited(n, 0);
+        vector<int> visited(n, 0), parent(n, -1);
+        parent[start] = -1;
+
+        DFS_recursion(start, visited, parent);
+
         ofstream f("DFS.txt");
-
-        DFS_recursion(u, visited, f);
+        print_path(parent, f);
     }
 
     void Prim(int u) {
@@ -373,19 +382,21 @@ int main()
 
     Graph test_graph = read_graph("Test graph.txt");
 
-    //test_graph.print(); cout << endl;
+    test_graph.print(); cout << endl;
     test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
     test_graph.Dijkstra(0);
     test_graph.AStar(0, 6);
+    //test_graph.FordFulkerson(0, 8);
 
     Graph test_graph_FF = read_graph("Test graph FF.txt");
-    test_graph_FF.print(); cout << endl;
-    test_graph_FF.FordFulkerson(0, 5);
+    //test_graph_FF.print(); cout << endl;
+    //test_graph_FF.FordFulkerson(0, 5);
 
     //cout << test_graph.FordFulkerson(0, 5) << endl;
 
+    
 
     return 0;
 }
