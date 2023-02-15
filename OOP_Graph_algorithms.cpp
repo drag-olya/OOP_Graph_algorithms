@@ -262,7 +262,7 @@ public:
 
         for (pair<int, int> adj_node : edges[u]) {
 
-            if (adj_node.first = v) {
+            if (adj_node.first == v) {
                 return adj_node.second;
             }
         }
@@ -281,40 +281,65 @@ public:
     }
 
     int FordFulkerson(int start, int goal) {
-        cout << "AAAAAAAAAAAA" << endl;
-
-        vector<int> parent(n, -1);
-        parent[start] = -1;
-        int max_flow = 0;
-        int u;
 
         Graph resid_g(n);
         resid_g.edges = edges;
+
+        vector<int> parent(n, -1);
+        int max_flow = 0;
+        int u;
+
+        //parent[start] = -1;
+
+        resid_g.print();
         
 
         while (resid_g.BFS(start, parent, goal)) {
 
             for (int i = 0; i < n; i++) { cout << parent[i] << " "; } cout << endl;
+            
 
             int path_flow = INT_MAX;
 
             for (int v = goal; v != start; v = parent[v]) {
                 
                 u = parent[v];
+                cout << "wgh " << u << " " << v << " " << resid_g.get_wgh(u, v) << endl;
                 path_flow = min(path_flow, resid_g.get_wgh(u, v));
+                cout << "path_flow " << path_flow << endl;
             }
             cout << "AAAAAAAAAAAA" << endl;
             for (int v = goal; v != start; v = parent[v]) {
                 u = parent[v];
-                upd_wgh(resid_g, u, v, -path_flow);
-                upd_wgh(resid_g, v, u, path_flow);
+                //upd_wgh(resid_g, u, v, -path_flow);
+                //upd_wgh(resid_g, v, u, path_flow);
+
+                for (pair<int, int>& adj_node : resid_g.edges[u]) {
+
+                    auto *f = &adj_node.second;
+
+                    if (adj_node.first == v) {
+                        *f -= path_flow;
+                    }
+                }
+
+                for (pair<int, int>& adj_node : resid_g.edges[v]) {
+
+                    auto* f = &adj_node.second;
+
+                    if (adj_node.first == u) {
+                        *f += path_flow;
+                    }
+                }
+
+
             }
 
             max_flow += path_flow;
             cout << max_flow << " ";
         }
 
-        resid_g.print();
+        resid_g.print(); cout << endl;
 
         return max_flow;
     }
@@ -356,15 +381,20 @@ int main()
 
     //g.DFS(0);
 
-    Graph test_graph = read_graph("Adjacency Matrix.txt");
+    Graph test_graph = read_graph("Test graph.txt");
 
-    test_graph.print(); cout << endl;
+    //test_graph.print(); cout << endl;
     //test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
     test_graph.Dijkstra(0);
     test_graph.AStar(0, 6);
-    cout << test_graph.FordFulkerson(0, 5) << endl;
+
+    Graph test_graph_FF = read_graph("Test graph FF.txt");
+    test_graph_FF.print(); cout << endl;
+    cout << test_graph_FF.FordFulkerson(0, 5) << endl;
+
+    //cout << test_graph.FordFulkerson(0, 5) << endl;
 
 
     return 0;
