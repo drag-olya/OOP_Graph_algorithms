@@ -29,12 +29,14 @@ private:
 
     pair<int, int> min_wgh_edge(vector<int> key, vector<int> visited) {
 
-        int min_wgh = INT_MAX, min_index;
+        int min_wgh = INT_MAX, min_index = -1;
 
         for (int v = 0; v < n; v++) {
-
             if (!visited[v] && key[v] < min_wgh)
+            {
                 min_wgh = key[v], min_index = v;
+            }
+
         }
 
         return make_pair(min_index, min_wgh);
@@ -111,6 +113,29 @@ private:
             }
         }
 
+    }
+
+    int search_step(vector<int> dist, vector<int>& visited) {
+
+        pair<int, int> min_u = min_wgh_edge(dist, visited);
+        int u = min_u.first;
+
+        visited[u] = 1;
+
+        return u;
+    }
+
+    void upd_shortest_dist(int w, int x, int dist_w_x, vector<int> visited, vector<int>& dist, vector<int>& parent) {
+
+        if (!visited[x]) {
+
+            int dist_x = dist[w] + dist_w_x;
+
+            if (dist_x < dist[x]) {
+                dist[x] = dist_x;
+                parent[x] = w;
+            }
+        }
     }
 
 public:
@@ -210,11 +235,11 @@ public:
 
     void Prim(int u) {
 
-        vector<int> weight(n, INT_MAX), visited(n, 0), parent(n, -1);
+        vector<int> dist(n, INT_MAX), visited(n, 0), parent(n, -1);
 
         ofstream f("PRIM.txt");
 
-        weight[u] = 0;
+        dist[u] = 0;
         visited[u] = 1;
 
         for (int i = 0; i < n - 1;i++){
@@ -222,14 +247,14 @@ public:
             for (pair<int, int> adj_node : edges[u]) {
                 int v_adj = adj_node.first;
 
-                if (!visited[v_adj] && adj_node.second < weight[v_adj]) {
+                if (!visited[v_adj] && adj_node.second < dist[v_adj]) {
 
                     parent[v_adj] = u;
-                    weight[v_adj] = adj_node.second;
+                    dist[v_adj] = adj_node.second;
                 }
             }
             
-            pair<int, int> min_v = min_wgh_edge(weight, visited);
+            pair<int, int> min_v = min_wgh_edge(dist, visited);
             u = min_v.first;
             visited[u] = 1;
             f << parent[u] << " " << u << " " << min_v.second << endl;
@@ -237,7 +262,6 @@ public:
     }
 
     void Dijkstra(int start, int goal = -1) {
-
         vector<int> visited(n, 0), dist(n, INT_MAX), parent(n, -1);
        
         dist[start] = 0;
@@ -248,6 +272,7 @@ public:
 
             pair<int, int> curr_node = min_wgh_edge(dist, visited);
             curr = curr_node.first;
+            cout << "curr " << curr << endl;
 
             if (goal >= 0 && curr == goal) {
                 ofstream f("Dijkstra.txt");
@@ -259,19 +284,12 @@ public:
             for (pair<int, int> adj_node : edges[curr]) {
 
                 int v = adj_node.first;
+                int dist_curr_v = adj_node.second;
 
-                if (!visited[v]) {
-
-                    int dist_w = dist[curr] + adj_node.second;
-
-                    if (dist_w < dist[v]) {
-                        dist[v] = dist_w;
-                        parent[v] = curr;
-                    }
-                }
+                upd_shortest_dist(curr, v, dist_curr_v, visited, dist, parent);
             }
-
         }
+
         print_Dijkstra(parent, dist);
     }
 
@@ -347,6 +365,63 @@ public:
         cout << "Max flow: " << max_flow << endl;
     }
 
+    void BidirectDijkstra(int start, int goal) {
+
+        vector<int> visited_f(n, 0), dist_f(n, INT_MAX), parent_f(n, -1); // f - forward approximations;
+        vector<int> visited_b(n, 0), dist_b(n, INT_MAX), parent_b(n, -1); // b - backward approximations
+        int mu = INT_MAX;
+        cout << "mu1  " << mu << endl;
+        //visited_f[start] = 1; visited_b[goal] = 1;
+        dist_f[start] = 0; dist_b[goal] = 0;
+
+        for (int count = 0; count < n - 1; count++) {
+
+            int u = search_step(dist_f, visited_f);
+            int v = search_step(dist_b, visited_b);
+            cout << u << " " << v << endl;
+
+            for (pair<int, int> adj_node : edges[u]) {
+
+                
+                int x = adj_node.first;
+                int dist_u_x = adj_node.second;
+
+                upd_shortest_dist(u, x, dist_u_x, visited_f, dist_f, parent_f);
+
+                if (visited_b[x]) {
+                    int dist_start_goal = dist_f[u] + dist_u_x + dist_b[x];
+
+                    if (dist_start_goal < mu) {
+                        mu = dist_start_goal;
+                    }
+                }
+            }
+
+            for (pair<int, int> adj_node : edges[v]) {
+
+                int x = adj_node.first;
+                int dist_v_x = adj_node.second;
+
+                upd_shortest_dist(v, x, dist_v_x, visited_b, dist_b, parent_b);
+
+                if (visited_f[x]) {
+                    int dist_start_goal = dist_b[v] + dist_v_x + dist_f[x];
+
+                    if (dist_start_goal < mu) {
+                        mu = dist_start_goal;
+                    }
+                }
+
+            }
+
+            if (dist_f[u] + dist_b[v] >= mu && u != start && v != goal) {
+                cout << dist_f[u] << "  " << dist_b[v] << endl;
+                break;
+            }
+
+        }
+    }
+
 };
 
 
@@ -390,7 +465,7 @@ int main()
     test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
-    test_graph.Dijkstra(0);
+    test_graph.Dijkstra(0, 4);
     test_graph.AStar(0, 6);
     //test_graph.FordFulkerson(0, 8);
 
@@ -398,7 +473,8 @@ int main()
     //test_graph_FF.print(); cout << endl;
     test_graph_FF.FordFulkerson(0, 5);
 
-    //cout << test_graph.FordFulkerson(0, 5) << endl;
+    test_graph.BidirectDijkstra(0, 4);
+
 
     
 
