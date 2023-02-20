@@ -134,10 +134,20 @@ private:
             if (dist_x < dist[x]) {
                 dist[x] = dist_x;
                 parent[x] = w;
+                cout << w << " -- " << x << endl;
             }
         }
     }
 
+    void print_BidirectDijkstra(int meet, vector<int> parent_f, vector<int> parent_b, vector<int> dist_f, vector<int> dist_b) {
+
+        ofstream f("BiderctDijkstra.txt");
+        print_shortest_path(meet, parent_f, dist_f, f);
+        ofstream f_app("BiderctDijkstra.txt", std::ios_base::app);
+        print_shortest_path(meet, parent_b, dist_b, f_app);
+
+    }
+    
 public:
 
     vector<vector<pair<int, int>>> edges;
@@ -369,19 +379,16 @@ public:
 
         vector<int> visited_f(n, 0), dist_f(n, INT_MAX), parent_f(n, -1); // f - forward approximations;
         vector<int> visited_b(n, 0), dist_b(n, INT_MAX), parent_b(n, -1); // b - backward approximations
-        int mu = INT_MAX;
-        cout << "mu1  " << mu << endl;
-        //visited_f[start] = 1; visited_b[goal] = 1;
+        int meet, mu = INT_MAX;
+
         dist_f[start] = 0; dist_b[goal] = 0;
 
         for (int count = 0; count < n - 1; count++) {
 
             int u = search_step(dist_f, visited_f);
             int v = search_step(dist_b, visited_b);
-            cout << u << " " << v << endl;
 
             for (pair<int, int> adj_node : edges[u]) {
-
                 
                 int x = adj_node.first;
                 int dist_u_x = adj_node.second;
@@ -393,6 +400,7 @@ public:
 
                     if (dist_start_goal < mu) {
                         mu = dist_start_goal;
+                        meet = x;
                     }
                 }
             }
@@ -409,17 +417,19 @@ public:
 
                     if (dist_start_goal < mu) {
                         mu = dist_start_goal;
+                        meet = x;
                     }
                 }
 
             }
 
             if (dist_f[u] + dist_b[v] >= mu && u != start && v != goal) {
-                cout << dist_f[u] << "  " << dist_b[v] << endl;
                 break;
             }
 
         }
+
+        print_BidirectDijkstra(meet, parent_f, parent_b, dist_f, dist_b);
     }
 
 };
@@ -465,7 +475,7 @@ int main()
     test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
-    test_graph.Dijkstra(0, 4);
+    test_graph.Dijkstra(0, 8);
     test_graph.AStar(0, 6);
     //test_graph.FordFulkerson(0, 8);
 
@@ -473,7 +483,7 @@ int main()
     //test_graph_FF.print(); cout << endl;
     test_graph_FF.FordFulkerson(0, 5);
 
-    test_graph.BidirectDijkstra(0, 4);
+    test_graph.BidirectDijkstra(0, 8);
 
 
     
