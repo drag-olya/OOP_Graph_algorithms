@@ -129,6 +129,9 @@
   <ItemGroup>
     <ClCompile Include="OOP_Graph_algorithms.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="draw.py" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -56,8 +56,10 @@ private:
 
         for (int i = 0; i < n; i++)
         {
-            if (parent[i] >= 0) {
-                f << parent[i] << " " << i << " " << dist[i] << endl;
+            int par_i = parent[i];
+
+            if (par_i >= 0) {
+                f << par_i << " " << i << " " << getWgh(par_i, i) << endl;
             }
         }
     }
@@ -76,7 +78,8 @@ private:
         while (!path.empty()) {
             curr = path.top();
 
-            f << parent[curr] << " " << curr << " " << dist[curr] << endl;
+            int par_curr = parent[curr];
+            f << par_curr << " " << curr << " " << getWgh(par_curr, curr) << endl;
 
             path.pop();
             
@@ -139,16 +142,14 @@ private:
     }
 
     void upd_mu(vector<int> visited, vector<int> dist_f, vector<int> dist_b, int x, int& mu, int& meet) {
-        cout << "x " << x << " vis x " << visited[x] << endl;
+        
         if (visited[x]) {
-            cout << "OOOOOO" << endl;
             //int dist_start_goal = dist_f[w] + dist_w_x + dist_b[x];
             int dist_start_goal = dist_f[x] + dist_b[x];
 
             if (dist_start_goal < mu) {
                 mu = dist_start_goal;
                 meet = x;
-                cout << mu << " " << meet << endl;
             }
         }
     }
@@ -531,6 +532,39 @@ Graph read_graph(string fname) {
     return g;
 }
 
+void visualize(const char* init_graph, const char* res_graph) {
+
+    FILE *fp;
+    int status;
+    const int MAX_SIZE = 256;
+    char input[256];
+
+    strcpy_s(input, init_graph);
+    strcat_s(input, " ");
+    strcat_s(input, res_graph);
+
+
+    fp = _popen("python Graph_visualization.py", "w");
+    
+    if (fp == NULL) {
+        cout << "Failed to open pipe!" << endl;
+    }
+    else {
+        fputs(input, fp);
+        cout << "PUT" << endl;
+    }
+
+    status = _pclose(fp);
+
+    cout << "stat " << status << endl;
+    if (status == -1) {
+        cout << "smth wenr wrong!" << endl;
+    }
+    else {
+        cout << "good" << endl;
+    }
+}
+
 int main()
 {
     Graph g(3);
@@ -544,14 +578,17 @@ int main()
 
     //g.DFS(0);
 
-    Graph test_graph = read_graph("Test graph.txt");
+    Graph test_graph = read_graph("Test_graph.txt");
 
     test_graph.print(); cout << endl;
     test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
-    test_graph.Dijkstra(0, 8);
+    //visualize("Test_graph.txt", "Prim.txt");
+    test_graph.Dijkstra(0);
+    //visualize("Test_graph.txt", "Dijkstra.txt");
     test_graph.AStar(0, 6);
+    visualize("Test_graph.txt", "AStar.txt");
     //test_graph.FordFulkerson(0, 8);
 
     Graph test_graph_FF = read_graph("Test graph FF.txt");
