@@ -5,12 +5,15 @@ files = input()
 
 init_graph, res_graph = files.split()[0], files.split()[1]
 
-#init_graph = r"Test_graph.txt"
 with open(init_graph, "r") as f1:
     lines1 = f1.readlines()
-print('geeee')
-# Create an empty graph for the second filemain.py
-G1 = nx.Graph()
+
+if res_graph == 'FordFulkerson.txt':
+    G1 = nx.DiGraph()
+    G2 = nx.DiGraph()
+else:
+    G1 = nx.Graph()
+    G2 = nx.Graph()
 
 for i, line in enumerate(lines1[1:]):
     data = line.split()
@@ -19,16 +22,10 @@ for i, line in enumerate(lines1[1:]):
             G1.add_edge(i, j, weight=float(weight))
 
 
-
-# Read in the file
-#res_graph = "BidirectAStar.txt"
 with open(res_graph, "r") as f2:
     lines2 = f2.readlines()
 
-# Create an empty graph
-G2 = nx.Graph()
 
-# Add nodes and edges to the graph
 for line in lines2:
     data = line.split()
     node1 = int(data[0])
@@ -36,8 +33,7 @@ for line in lines2:
     weight = float(data[2])
     G2.add_edge(node1, node2, weight=weight)
 
-fig, (ax1, ax2) = plt.subplots(ncols=2, figsize=(13, 8))
-
+fig, ax = plt.subplots(nrows=1, ncols=2, sharex='all', sharey='all', figsize=(13, 8))
 
 edge_label_opts = {
     'font_family': 'serif',
@@ -47,17 +43,17 @@ edge_label_opts = {
     'bbox': {'facecolor': 'white', 'edgecolor': 'none', 'pad': 0.3, 'alpha': 1},
 }
 
-# Draw the graph
-pos1 = nx.shell_layout(G1)
-print(pos1)
-nx.draw(G1, pos1, with_labels=True, ax=ax1)
+pos = nx.spring_layout(G1)
+if init_graph == 'Test_graph.txt':
+    pos = {0: (-2, 0), 1: (-1, 0.5), 2: (0, 0.5), 3: (1, 0.5), 4: (2, 0), 5: (1, -0.5), 6: (0, -0.5), 7: (-1, -0.5), 8: (0, 0)}
+
+nx.draw(G1, pos, with_labels=True, ax=ax[0])
 labels1 = nx.get_edge_attributes(G1, "weight")
-label_pos = {k: (v[0], v[1]+0.1) for k, v in pos1.items()}
-nx.draw_networkx_edge_labels(G1, pos1, edge_labels=labels1, **edge_label_opts, ax=ax1)
+nx.draw_networkx_edge_labels(G1, pos, edge_labels=labels1, **edge_label_opts, ax=ax[0])
 
 
-nx.draw(G2, pos1, with_labels=True, ax=ax2)
+nx.draw(G2, pos, with_labels=True, ax=ax[1])
 labels2 = nx.get_edge_attributes(G2, "weight")
-nx.draw_networkx_edge_labels(G2, pos1, edge_labels=labels2, **edge_label_opts, ax=ax2)
+nx.draw_networkx_edge_labels(G2, pos, edge_labels=labels2, **edge_label_opts, ax=ax[1])
 
 plt.show()

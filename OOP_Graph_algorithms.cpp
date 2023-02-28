@@ -46,11 +46,15 @@ private:
     void print_path(vector<int> parent, ofstream& f) {
 
         for (int u = 0; u < n; u++) {
-            f << parent[u] << " " << u << endl;
+            int par_u = parent[u];
+            if (par_u >= 0) {
+                f << par_u << " " << u << " " << getWgh(par_u, u) << endl;
+            }
+            
         }
     }
 
-    void print_Dijkstra(vector<int> parent, vector<int> dist) {
+    void print_Dijkstra(vector<int> parent) {
 
         ofstream f("Dijkstra.txt");
 
@@ -64,7 +68,7 @@ private:
         }
     }
 
-    void print_shortest_path(int curr, vector<int> parent, vector<int> dist, ofstream& f) {
+    void print_shortest_path(int curr, vector<int> parent, ofstream& f) {
 
         stack<int> path;
         path.push(curr);
@@ -100,7 +104,7 @@ private:
 
     void print_FordFulkerson(Graph resid_g) {
 
-        ofstream f("Ford Fulkerson.txt");
+        ofstream f("FordFulkerson.txt");
 
         for (int u = 0; u < n; u++)
         {
@@ -144,7 +148,6 @@ private:
     void upd_mu(vector<int> visited, vector<int> dist_f, vector<int> dist_b, int x, int& mu, int& meet) {
         
         if (visited[x]) {
-            //int dist_start_goal = dist_f[w] + dist_w_x + dist_b[x];
             int dist_start_goal = dist_f[x] + dist_b[x];
 
             if (dist_start_goal < mu) {
@@ -154,12 +157,12 @@ private:
         }
     }
 
-    void print_bidirect(int meet, vector<int> parent_f, vector<int> parent_b, vector<int> dist_f, vector<int> dist_b, string fname) {
+    void print_bidirect(int meet, vector<int> parent_f, vector<int> parent_b, vector<int> dist_f, string fname) {
 
         ofstream f(fname);
-        print_shortest_path(meet, parent_f, dist_f, f);
+        print_shortest_path(meet, parent_f, f);
         ofstream f_app(fname, std::ios_base::app);
-        print_shortest_path(meet, parent_b, dist_b, f_app);
+        print_shortest_path(meet, parent_b, f_app);
 
     }
   
@@ -309,11 +312,10 @@ public:
 
             pair<int, int> curr_node = min_wgh_edge(dist, visited);
             curr = curr_node.first;
-            cout << "curr " << curr << endl;
 
             if (goal >= 0 && curr == goal) {
                 ofstream f("Dijkstra.txt");
-                return print_shortest_path(curr, parent, dist, f);
+                return print_shortest_path(curr, parent, f);
             }
 
             visited[curr] = 1;
@@ -327,7 +329,7 @@ public:
             }
         }
 
-        print_Dijkstra(parent, dist);
+        print_Dijkstra(parent);
     }
 
     int h(int u, int v) {
@@ -349,7 +351,7 @@ public:
 
             if (curr == goal) {
                 ofstream f("AStar.txt");
-                return print_shortest_path(curr, parent, f_score, f);
+                return print_shortest_path(curr, parent, f);
             }
             visited[curr] = 1;
 
@@ -445,7 +447,7 @@ public:
 
         }
 
-        print_bidirect(meet, parent_f, parent_b, dist_f, dist_b, "BidirectDijkstra.txt");
+        print_bidirect(meet, parent_f, parent_b, dist_f, "BidirectDijkstra.txt");
     }
 
     void BidirectAStar(int start, int goal) {
@@ -505,7 +507,7 @@ public:
                 break;
             }
         }
-        print_bidirect(meet, parent_f, parent_b, g_score_f, g_score_b, "BidirectAStar.txt");
+        print_bidirect(meet, parent_f, parent_b, g_score_f, "BidirectAStar.txt");
     }
 
 };
@@ -551,17 +553,14 @@ void visualize(const char* init_graph, const char* res_graph) {
     }
     else {
         fputs(input, fp);
-        cout << "PUT" << endl;
     }
 
     status = _pclose(fp);
 
-    cout << "stat " << status << endl;
     if (status == -1) {
-        cout << "smth wenr wrong!" << endl;
+        cout << "Smth went wrong!" << endl;
     }
     else {
-        cout << "good" << endl;
     }
 }
 
@@ -576,27 +575,21 @@ int main()
     g.addEdge(0, 2, 10);
     g.addEdge(0, 1, 10);
 
-    //g.DFS(0);
 
     Graph test_graph = read_graph("Test_graph.txt");
+    Graph test_graph_FF = read_graph("Test_graph_FF.txt");
 
-    test_graph.print(); cout << endl;
     test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
-    //visualize("Test_graph.txt", "Prim.txt");
-    test_graph.Dijkstra(0);
-    //visualize("Test_graph.txt", "Dijkstra.txt");
+    test_graph.Dijkstra(0, 5);
     test_graph.AStar(0, 6);
-    visualize("Test_graph.txt", "AStar.txt");
-    //test_graph.FordFulkerson(0, 8);
-
-    Graph test_graph_FF = read_graph("Test graph FF.txt");
-    //test_graph_FF.print(); cout << endl;
     test_graph_FF.FordFulkerson(0, 5);
-
-    //test_graph.BidirectDijkstra(0, 4);
+    test_graph.BidirectDijkstra(0, 4);
     test_graph.BidirectAStar(0, 4);
+
+    visualize("Test_graph_FF.txt", "FordFulkerson.txt");
+
 
     return 0;
 }
