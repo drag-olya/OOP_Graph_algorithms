@@ -181,16 +181,23 @@ private:
 public:
 
     vector<vector<pair<int, int>>> edges;
+    vector<pair<int, int>> coordinates;
     int n;
     
     Graph(int size) {
         edges.resize(size);
+        coordinates.resize(size);
         n = size;
     }
 
     void addEdge(int start, int end, int weight) {
 
         edges[start].push_back(make_pair(end, weight));
+    }
+
+    void addCoord(int v, int x, int y) {
+
+        coordinates[v] = make_pair(x, y);
     }
 
     int getWgh(int u, int v) {
@@ -333,7 +340,13 @@ public:
     }
 
     int h(int u, int v) {
-        return 1;
+        
+        int x1 = coordinates[u].first;
+        int y1 = coordinates[u].second;
+        int x2 = coordinates[v].first;
+        int y2 = coordinates[v].second;
+
+        return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
     }
 
     void AStar(int start, int goal) {
@@ -534,6 +547,23 @@ Graph read_graph(string fname) {
     return g;
 }
 
+void write_graph_to_file(Graph g, string fname)
+{
+    ofstream f(fname);
+
+    for (int i = 0; i < g.n; i++)
+    {
+        for (pair<int, int> p : g.edges[i]) {
+            int w = p.second;
+
+            if (w) {
+                f << i << " " << p.first << " " << p.second << endl;
+            }
+            
+        }
+    }
+}
+
 void visualize(const char* init_graph, const char* res_graph) {
 
     FILE *fp;
@@ -564,31 +594,65 @@ void visualize(const char* init_graph, const char* res_graph) {
     }
 }
 
+Graph rand_weighted_g(int n) {
+
+    Graph rand_g(n);
+    srand(time(0));
+
+    for (int i = 0; i < n; i++) {
+        for (int j = i; j < n; j++) {
+            
+            if (i != j) {
+                int connect = rand() % 2;
+                if (connect) {
+                    int w = (float)rand() / 1000;
+                    rand_g.addEdge(i, j, w);
+                    rand_g.addEdge(j, i, w);
+                }
+                
+            }
+            
+        }
+    }
+
+    return rand_g;
+}
+
 int main()
 {
-    Graph g(3);
 
-    g.addEdge(1, 2, 10);
-    g.addEdge(1, 0, 10);
-    g.addEdge(2, 1, 10);
-    g.addEdge(2, 0, 10);
-    g.addEdge(0, 2, 10);
-    g.addEdge(0, 1, 10);
+    Graph rand_g = rand_weighted_g(10);
+    write_graph_to_file(rand_g, "Rand_g.txt");
+    rand_g.print();
 
+    rand_g.DFS(3);
+    rand_g.Prim(3);
+    visualize("Rand_g.txt", "Prim.txt");
 
     Graph test_graph = read_graph("Test_graph.txt");
+    test_graph.addCoord(0, -2, 0);
+    test_graph.addCoord(1, -1, 0.5);
+    test_graph.addCoord(2, 0, 0.5);
+    test_graph.addCoord(3, 1, 0.5);
+    test_graph.addCoord(4, 2, 0);
+    test_graph.addCoord(5, 1, -0.5);
+    test_graph.addCoord(6, 0, -0.5);
+    test_graph.addCoord(7, -1, -100);
+    test_graph.addCoord(8, 0, 0);
+
     Graph test_graph_FF = read_graph("Test_graph_FF.txt");
 
     test_graph.BFS(2);
     test_graph.DFS(2);
     test_graph.Prim(0);
     test_graph.Dijkstra(0, 5);
-    test_graph.AStar(0, 6);
+    test_graph.AStar(0, 5);
     test_graph_FF.FordFulkerson(0, 5);
-    test_graph.BidirectDijkstra(0, 4);
-    test_graph.BidirectAStar(0, 4);
+    test_graph.BidirectDijkstra(0, 5);
+    test_graph.BidirectAStar(0, 5);
 
-    visualize("Test_graph_FF.txt", "FordFulkerson.txt");
+    //visualize("Test_graph.txt", "BidirectDijkstra.txt");
+    //visualize("Test_graph.txt", "BidirectAStar.txt");
 
 
     return 0;

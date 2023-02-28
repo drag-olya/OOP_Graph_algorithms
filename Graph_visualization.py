@@ -15,11 +15,19 @@ else:
     G1 = nx.Graph()
     G2 = nx.Graph()
 
-for i, line in enumerate(lines1[1:]):
-    data = line.split()
-    for j, weight in enumerate(data):
-        if float(weight) > 0:
-            G1.add_edge(i, j, weight=float(weight))
+if len(lines1[0])-1 == 1:  # there is a matrix in the file
+    for i, line in enumerate(lines1[1:]):
+        data = line.split()
+        for j, weight in enumerate(data):
+            if float(weight) > 0:
+                G1.add_edge(i, j, weight=float(weight))
+else:
+    for line in lines1:
+        data = line.split()
+        node1 = int(data[0])
+        node2 = int(data[1])
+        weight = float(data[2])
+        G1.add_edge(node1, node2, weight=weight)
 
 
 with open(res_graph, "r") as f2:
@@ -33,7 +41,8 @@ for line in lines2:
     weight = float(data[2])
     G2.add_edge(node1, node2, weight=weight)
 
-fig, ax = plt.subplots(nrows=1, ncols=2, sharex='all', sharey='all', figsize=(13, 8))
+title = res_graph.replace('.txt', '')
+fig, ax = plt.subplots(nrows=1, ncols=2, sharex='all', sharey='all', figsize=(13, 8), num=title)
 
 edge_label_opts = {
     'font_family': 'serif',
