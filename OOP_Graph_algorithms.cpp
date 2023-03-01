@@ -222,9 +222,11 @@ public:
         
     }
 
+
     int BFS(int start, int goal = -1, vector<int>& parent_for_FF = DEFAULT_VECTOR) {
 
         vector<int> visited(n, 0), parent(n, -1);
+
         queue<int> q;
         bool FordFulkers_method = false;
 
@@ -271,7 +273,8 @@ public:
 
     void DFS(int start) {
 
-        vector<int> visited(n, 0), parent(n, -1);
+        vector<int> visited(n, 0);
+        vector<int> parent(n, -1);
         parent[start] = -1;
 
         DFS_recursion(start, visited, parent);
@@ -337,6 +340,10 @@ public:
         }
 
         print_Dijkstra(parent);
+
+        for (int i = 0; i < n; i++) {
+            cout << dist[i] << endl;
+        }
     }
 
     int h(int u, int v) {
@@ -472,7 +479,7 @@ public:
         int mu = INT_MAX;  //best s - g path seen so far.
 
         g_score_f[start] = 0; g_score_b[goal] = 0;
-        f_score_f[start] = h(start, goal); f_score_b[goal] = h(goal, start); //////?
+        f_score_f[start] = h(start, goal); f_score_b[goal] = h(goal, start);
 
         for (int count = 0; count < n - 1; count++) {
 
@@ -594,42 +601,43 @@ void visualize(const char* init_graph, const char* res_graph) {
     }
 }
 
+/* not working (graph not always connected)
 Graph rand_weighted_g(int n) {
 
     Graph rand_g(n);
     srand(time(0));
+    int min_edges = n - 1;
+    int max_edges = n*(n - 1) / 2;
+    int num_edges = min_edges + (rand() % (max_edges + 1 - min_edges));
 
-    for (int i = 0; i < n; i++) {
-        for (int j = i; j < n; j++) {
-            
-            if (i != j) {
-                int connect = rand() % 2;
-                if (connect) {
-                    int w = (float)rand() / 1000;
-                    rand_g.addEdge(i, j, w);
-                    rand_g.addEdge(j, i, w);
-                }
-                
+    int i = 0;
+
+    while (i < num_edges) {
+        int u = rand() % n;
+        int v = rand() % n;
+        if (u == v) {
+            continue;
+        }
+        else {
+            if (!rand_g.getWgh(u, v)) {
+
+                int w = 1 + rand() % 99;
+                rand_g.addEdge(u, v, w);
+                rand_g.addEdge(v, u, w);
+                i++;
             }
-            
         }
     }
 
     return rand_g;
-}
+}*/
 
 int main()
 {
-
-    Graph rand_g = rand_weighted_g(10);
-    write_graph_to_file(rand_g, "Rand_g.txt");
-    rand_g.print();
-
-    rand_g.DFS(3);
-    rand_g.Prim(3);
-    visualize("Rand_g.txt", "Prim.txt");
-
     Graph test_graph = read_graph("Test_graph.txt");
+    Graph test_graph_FF = read_graph("Test_graph_FF.txt");
+
+    // adding coordinates for AStar algorithms
     test_graph.addCoord(0, -2, 0);
     test_graph.addCoord(1, -1, 0.5);
     test_graph.addCoord(2, 0, 0.5);
@@ -637,10 +645,9 @@ int main()
     test_graph.addCoord(4, 2, 0);
     test_graph.addCoord(5, 1, -0.5);
     test_graph.addCoord(6, 0, -0.5);
-    test_graph.addCoord(7, -1, -100);
+    test_graph.addCoord(7, -1, -0.5);
     test_graph.addCoord(8, 0, 0);
 
-    Graph test_graph_FF = read_graph("Test_graph_FF.txt");
 
     test_graph.BFS(2);
     test_graph.DFS(2);
@@ -651,9 +658,7 @@ int main()
     test_graph.BidirectDijkstra(0, 5);
     test_graph.BidirectAStar(0, 5);
 
-    //visualize("Test_graph.txt", "BidirectDijkstra.txt");
-    //visualize("Test_graph.txt", "BidirectAStar.txt");
-
+    visualize("Test_graph.txt", "DFS.txt");
 
     return 0;
 }
